@@ -489,7 +489,7 @@ class ScoutServer(object):
         m = []
         try:
             #get the picture for a given team
-            m = self.get("http://www.thebluealliance.com/api/v3/team/frc{0}/media/2019".format(n), params=headers).json()
+            m = self.get("http://www.thebluealliance.com/api/v3/team/frc{0}/media/2020".format(n), params=headers).json()
             if m.status_code == 400:
                 m = []
         except:
