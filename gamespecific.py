@@ -4,19 +4,27 @@ from enum import IntEnum
 import proprietary as prop
 
 #Defines the fields stored in the "Scout" table of the database. This database stores the record for each match scan
-SCOUT_FIELDS = {"Team":0, "Match":0, "Sandstorm":0, "HabClimb":0, "SupportClimb":0, "Defense":0, "Defended":0, "H_Ship":0, "H_R1":0, 
-                "H_R2":0, "H_R3":0, "C_Ship":0, "C_R1":0, "C_R2":0, "C_R3":0, "Replay":0, "Flag":0}
+#SCOUT_FIELDS = {"Team":0, "Match":0, "Sandstorm":0, "HabClimb":0, "SupportClimb":0, "Defense":0, "Defended":0, "H_Ship":0, "H_R1":0, 
+#                "H_R2":0, "H_R3":0, "C_Ship":0, "C_R1":0, "C_R2":0, "C_R3":0, "Replay":0, "Flag":0}
+SCOUT_FIELDS = {"Team":0, "Match":0, "AutoLine":0, "LowAuto":0, "HighAuto":0, "LowBallsTeleop":0, "HighBallsTeleop":0, "RotationControl":0, 
+                "PositionControl":0, "AttemptedClimb":0, "Climb":0, "Defense":0, "Defended":0, "Disabled":0, "Replay":0, "Flag":0}
 
 #Defines the fields that are stored in the "averages" and similar tables of the database. These are the fields displayed on the home page of the website. Hidden average fields are only displayed when logged in or on local.
-AVERAGE_FIELDS = {"Team":0, "Cycles":0, "Sandstorm":0, "HabClimb":0, "Cargo":0, "Hatches":0, "HighCargo":0, "HighHatches":0, "Defense":0}
-HIDDEN_AVERAGE_FIELDS = {"CycleScore":0, "FirstP":0, "SecondP":0}
+#AVERAGE_FIELDS = {"Team":0, "Cycles":0, "Sandstorm":0, "HabClimb":0, "Cargo":0, "Hatches":0, "HighCargo":0, "HighHatches":0, "Defense":0}
+AVERAGE_FIELDS = {"Team":0, "AutoLine":0, "Climb":0, "LowAuto":0, "HighAuto":0, "LowBallsTeleop":0, "HighBallsTeleop":0, "TeleopBallScore":0, "Defense":0}
+
+#HIDDEN_AVERAGE_FIELDS = {"CycleScore":0, "FirstP":0, "SecondP":0}
+HIDDEN_AVERAGE_FIELDS = {"FirstP":0, "SecondP":0}
 
 #Define the fields collected from Pit Scouting to display on the team page
-PIT_SCOUT_FIELDS = {"Team":0, "Weight":0, "PitOrganization":0, "WiringQuality":0, "BumperQuality":0, "Batteries":0, "SillyWheels":0, "Pro775s":0, "Swerve":0, 
-                    "Sandstorm2": 0, "ShipCenter":0, "ShipSide":0, "RocketBack":0, "RocketFront":0, "FloorPickup":0, "Cargo":0, "Hatches":0, "RocketLevel":0}
+#PIT_SCOUT_FIELDS = {"Team":0, "Weight":0, "PitOrganization":0, "WiringQuality":0, "BumperQuality":0, "Batteries":0, "SillyWheels":0, "Pro775s":0, "Swerve":0, 
+#                    "Sandstorm2": 0, "ShipCenter":0, "ShipSide":0, "RocketBack":0, "RocketFront":0, "FloorPickup":0, "Cargo":0, "Hatches":0, "RocketLevel":0}
+PIT_SCOUT_FIELDS = {"Team":0, "Weight":0, "PitOrganization":0, "WiringQuality":0, "BumperQuality":0, "Batteries":0, "SillyWheels":0, "Pro775s":0, "Swerve":0,
+                     "BallCapacity":0, "PanelManipulator":0, "FloorPickup":0, "TrenchHeight":0, "Climber":0, "ClimbMaxHeight":0} 
 
 #Defines the fields displayed on the charts on the team and compare pages
-CHART_FIELDS = {"match":0, "Sandstorm":0, "HabClimb":0, "Cargo":0, "Hatches":0, "Cycles":0}
+#CHART_FIELDS = {"match":0, "Sandstorm":0, "HabClimb":0, "Cargo":0, "Hatches":0, "Cycles":0}
+CHART_FIELDS = {"match":0, "AutoLine":0, "Climb":0, "Balls":0, "BallScore":0}
 
 class SheetType(IntEnum):
   MATCH = 0
@@ -45,28 +53,58 @@ def processSheet(scout):
           match2 = scout.rangefield('J-7', 0, 9)
           match3 = scout.rangefield('J-8', 0, 9)
           scout.setMatchData("Match", 100*match1 + 10*match2 + match3)
+
+          autoLine = scout.boolfield('G-11')
+          lowAuto = scout.rangefield('G-12', 0, 9)
+          highAuto = scout.rangefield('G-13', 0, 9)
+          scout.setMatchData("Autoline", autoLine*5)
+          scout.setMatchData("LowAuto", 2*lowAuto)
+          scout.setMatchData("HighAuto", 4*highAuto)
+          
+          low1 = scout.rangefield('AA-13', 0, 9)
+          low2 = scout.rangefield('AA-14', 0, 9)
+          scout.setMatchData("LowBallsTeleop", 10*low1 + low2)
+
+          high1 = scout.rangefield('AA-16', 0, 9)
+          high2 = scout.rangefield('AA-17', 0, 9)
+          scout.setMatchData("HighBallsTeleop", 10*high1 + high2)
+
+          rotationControl = scout.boolfield('AA-11')
+          positionControl = scout.boolfield('AI-11')
+          scout.setMatchData("RotationControl", rotationControl)
+          scout.setMatchData("PositionControl", positionControl)
+
+          # NOT ACCOUNTING FOR INNER PORT SHOTS YET
+          # REVISIT AFTER TALK ABOUT SCOUTING
+
+          attemptedClimb = scout.boolfield('T-16')
+          climb = scout.boolfield('T-17')
+          scout.setMatchData("AttemptedClimb", attemptedClimb)
+          scout.setMatchData("Climb", 15*climb)
+
+          #scout.setMatchData("Sandstorm", scout.rangefield('J-12',0,2)*3)
+          #habClimbLevel = scout.rangefield('J-14', 0, 3)
+          #scout.setMatchData("HabClimb", habClimbLevel * 3 if habClimbLevel < 3 else 12)
+          #supportClimbLevel = scout.rangefield('J-15', 0, 3)
+          #scout.setMatchData("SupportClimb", supportClimbLevel * 3 if supportClimbLevel < 2 else 12)
+          
+          scout.setMatchData("Defense", scout.boolfield('G-15'))
+          
+          scout.setMatchData("Defended", scout.boolfield('M-15'))
+          
+          scout.setMatchData("Disabled", scout.boolfield('G-17'))
           
           scout.setMatchData("Replay", scout.boolfield('S-6'))
 
-          scout.setMatchData("Sandstorm", scout.rangefield('J-12',0,2)*3)
-          habClimbLevel = scout.rangefield('J-14', 0, 3)
-          scout.setMatchData("HabClimb", habClimbLevel * 3 if habClimbLevel < 3 else 12)
-          supportClimbLevel = scout.rangefield('J-15', 0, 3)
-          scout.setMatchData("SupportClimb", supportClimbLevel * 3 if supportClimbLevel < 2 else 12)
+          #scout.setMatchData("H_Ship", scout.countfield('V-10', 'AD-10', 0))
+          #scout.setMatchData("H_R1", scout.countfield('V-11', 'Z-11', 0))
+          #scout.setMatchData("H_R2", scout.countfield('V-12', 'Z-12', 0))
+          #scout.setMatchData("H_R3", scout.countfield('V-13', 'Z-13', 0))
           
-          scout.setMatchData("Defense", scout.boolfield('J-18'))
-          
-          scout.setMatchData("Defended", scout.boolfield('P-18'))
-          
-          scout.setMatchData("H_Ship", scout.countfield('V-10', 'AD-10', 0))
-          scout.setMatchData("H_R1", scout.countfield('V-11', 'Z-11', 0))
-          scout.setMatchData("H_R2", scout.countfield('V-12', 'Z-12', 0))
-          scout.setMatchData("H_R3", scout.countfield('V-13', 'Z-13', 0))
-          
-          scout.setMatchData("C_Ship", scout.countfield('V-15', 'AD-15', 0))
-          scout.setMatchData("C_R1", scout.countfield('V-16', 'Z-16', 0))
-          scout.setMatchData("C_R2", scout.countfield('V-17', 'Z-17', 0))
-          scout.setMatchData("C_R3", scout.countfield('V-18', 'Z-18', 0))
+          #scout.setMatchData("C_Ship", scout.countfield('V-15', 'AD-15', 0))
+          #scout.setMatchData("C_R1", scout.countfield('V-16', 'Z-16', 0))
+          #scout.setMatchData("C_R2", scout.countfield('V-17', 'Z-17', 0))
+          #scout.setMatchData("C_R3", scout.countfield('V-18', 'Z-18', 0))
           
           scout.submit()
         elif(type == SheetType.PIT):
@@ -82,22 +120,29 @@ def processSheet(scout):
           weight3 = scout.rangefield('AB-7', 0, 9)
           scout.setPitData("Weight", 100*weight1 + 10*weight2 + weight3)
           
-          
-          scout.setPitData("Sandstorm2", scout.boolfield('I-11'))
-          scout.setPitData("ShipCenter", scout.boolfield('I-12'))
-          scout.setPitData("ShipSide", scout.boolfield('I-13'))
-          scout.setPitData("RocketBack", scout.boolfield('I-15'))
-          scout.setPitData("RocketFront", scout.boolfield('I-16'))
+          #BallCapacity, PanelManipulator, FloorPickup, TrenchHeight, Climber
+          ballCapacity = 1 + scout.rangefield('G-10', 0, 4)
+          scout.setPitData("BallCapacity", ballCapacity)
+          scout.setPitData("PanelManipulator", scout.boolfield('G-11'))
+          scout.setPitData("FloorPickup", scout.boolfield('G-12'))
+          scout.setPitData("TrenchHeight", scout.boolfield('G-13'))
+          scout.setPitData("Climber", scout.boolfield('G-14'))
+          scout.setPitData("ClimbMaxHeight", scout.boolfield('I-15')
+          #scout.setPitData("Sandstorm2", scout.boolfield('I-11'))
+          #scout.setPitData("ShipCenter", scout.boolfield('I-12'))
+          #scout.setPitData("ShipSide", scout.boolfield('I-13'))
+          #scout.setPitData("RocketBack", scout.boolfield('I-15'))
+          #scout.setPitData("RocketFront", scout.boolfield('I-16'))
           
           scout.setPitData("SillyWheels", scout.boolfield('V-12'))
           scout.setPitData("Pro775s", scout.boolfield('V-13'))
           scout.setPitData("Swerve", scout.boolfield('V-14'))
           
-          scout.setPitData("FloorPickup", scout.boolfield('P-11')) 
-          scout.setPitData("Cargo", scout.boolfield('P-12'))
-          scout.setPitData("Hatches", scout.boolfield('P-13'))
-          rocketLevel = scout.boolfield('P-14') + scout.boolfield('P-15')*2 + scout.boolfield('P-16')*3
-          scout.setPitData("RocketLevel", rocketLevel)
+          #scout.setPitData("FloorPickup", scout.boolfield('P-11')) 
+          #scout.setPitData("Cargo", scout.boolfield('P-12'))
+          #scout.setPitData("Hatches", scout.boolfield('P-13'))
+          #rocketLevel = scout.boolfield('P-14') + scout.boolfield('P-15')*2 + scout.boolfield('P-16')*3
+          #scout.setPitData("RocketLevel", rocketLevel)
           
           scout.setPitData("PitOrganization", scout.rangefield('AF-12', 1, 3))
           scout.setPitData("WiringQuality", scout.rangefield('AF-13', 1, 3))
@@ -109,26 +154,38 @@ def processSheet(scout):
 #Takes an entry from the Scout database table and generates text for display on the team page. This page has 4 columns, currently used for auto, 2 teleop, and other (like fouls and end game)
 def generateTeamText(e):
     text = {'auto':"", 'teleop1':"", 'teleop2':"", 'other':""}
-    text['auto'] += 'Sandstorm: ' + str(e['Sandstorm'])
+    text['auto'] += 'AutoLine: ' + str(e['AutoLine'])
+    text['auto'] += 'LowAuto: ' + str(e['LowAuto'])
+    text['auto'] += 'HighAuto: ' + str(e['HighAuto'])
+    #text['auto'] += 'Sandstorm: ' + str(e['Sandstorm'])
     
-    text['teleop1'] += 'Hatches - ' if (e['H_Ship']+e['H_R1']+e['H_R2']+e['H_R3']) else ''
-    text['teleop1'] += 'Ship: ' + str(e['H_Ship']) + ', ' if e['H_Ship'] else ''
-    text['teleop1'] += 'R1: ' + str(e['H_R1']) + ', ' if e['H_R1'] else ''
-    text['teleop1'] += 'R2: ' + str(e['H_R2']) + ', ' if e['H_R2'] else ''
-    text['teleop1'] += 'R3: ' + str(e['H_R3']) + ', ' if e['H_R3'] else ''
+    text['teleop1'] += 'Shooting - ' if (e['LowBallsTeleop']+e['HighBallsTeleop']) else ''
+    text['teleop1'] += 'LowBallsTeleop: ' + str(e['LowBallsTeleop']) + ', ' if e['LowBallsTeleop'] else ''
+    text['teleop1'] += 'HighBallsTeleop: ' + str(e['HighBallsTeleop']) + ', ' if e['HighBallsTeleop'] else ''
+    #text['teleop1'] += 'Hatches - ' if (e['H_Ship']+e['H_R1']+e['H_R2']+e['H_R3']) else ''
+    #text['teleop1'] += 'Ship: ' + str(e['H_Ship']) + ', ' if e['H_Ship'] else ''
+    #text['teleop1'] += 'R1: ' + str(e['H_R1']) + ', ' if e['H_R1'] else ''
+    #text['teleop1'] += 'R2: ' + str(e['H_R2']) + ', ' if e['H_R2'] else ''
+    #text['teleop1'] += 'R3: ' + str(e['H_R3']) + ', ' if e['H_R3'] else ''
     text['teleop1'] = text['teleop1'][:-2]
     
-    text['teleop2'] += 'Cargo - ' if (e['C_Ship']+e['C_R1']+e['C_R2']+e['C_R3']) else ''
-    text['teleop2'] += 'Ship: ' + str(e['C_Ship']) + ', ' if e['C_Ship'] else ''
-    text['teleop2'] += 'R1: ' + str(e['C_R1']) + ', ' if e['C_R1'] else ''
-    text['teleop2'] += 'R2: ' + str(e['C_R2']) + ', ' if e['C_R2'] else ''
-    text['teleop2'] += 'R3: ' + str(e['C_R3']) + ', ' if e['C_R3'] else ''
+    text['teleop2'] += 'ControlPanel - ' if(e['RotationControl']+e['PositionControl']) else ''
+    text['teleop2'] += 'RotationControl: ' + str(e['RotationControl']) + ', ' if e['RotationControl'] else ''
+    text['teleop2'] += 'PositionControl: ' + str(e['RotationControl']) + ', ' if e['RotationControl'] else ''
+    #text['teleop2'] += 'Cargo - ' if (e['C_Ship']+e['C_R1']+e['C_R2']+e['C_R3']) else ''
+    #text['teleop2'] += 'Ship: ' + str(e['C_Ship']) + ', ' if e['C_Ship'] else ''
+    #text['teleop2'] += 'R1: ' + str(e['C_R1']) + ', ' if e['C_R1'] else ''
+    #text['teleop2'] += 'R2: ' + str(e['C_R2']) + ', ' if e['C_R2'] else ''
+    #text['teleop2'] += 'R3: ' + str(e['C_R3']) + ', ' if e['C_R3'] else ''
     text['teleop2'] = text['teleop2'][:-2]
     
-    text['other'] += 'HabClimb: ' + str(e['HabClimb']) + ', ' if e['HabClimb'] else ''
-    text['other'] += 'Supported: ' + str(e['SupportClimb']) + ', ' if e['SupportClimb'] else ''
+    text['other'] += 'Climb: ' + str(e['Climb']) + ', ' if e['HabClimb'] else ''
+    text['other'] += 'AttemptedClimb, ' if e['AttemptedClimb'] else ''
+    #text['other'] += 'HabClimb: ' + str(e['HabClimb']) + ', ' if e['HabClimb'] else ''
+    #text['other'] += 'Supported: ' + str(e['SupportClimb']) + ', ' if e['SupportClimb'] else ''
     text['other'] += 'Defense, ' if e['Defense'] else ''
-    text['other'] += 'Defended, ' if e['Defended'] else''
+    text['other'] += 'Defended, ' if e['Defended'] else ''
+    text['other'] += 'Disabled, ' if e['Disabled'] else ''
     text['other'] = text['other'][:-2]
     
     return text
@@ -137,12 +194,15 @@ def generateTeamText(e):
 def generateChartData(e):
     dp = dict(CHART_FIELDS)
     dp["match"]= e['match']
-    
-    dp['Sandstorm'] += e['Sandstorm']
-    dp['HabClimb'] += e['HabClimb']
-    dp['Hatches'] += e['H_Ship'] + e['H_R1'] + e['H_R2'] + e['H_R3']
-    dp['Cargo'] += e['C_Ship'] + e['C_R1'] + e['C_R2'] + e['C_R3']
-    dp['Cycles'] += e['H_Ship'] + e['H_R1'] + e['H_R2'] + e['H_R3'] + e['C_Ship'] + e['C_R1'] + e['C_R2'] + e['C_R3']
+    dp['AutoLine'] += e['Autoline']
+    dp['Climb'] += e['Climb']
+    dp['Balls'] += e['LowAuto'] + e['HighAuto'] + e['LowBallsTeleop'] + e['HighBallsTeleop']
+    dp['BallScore'] += 2*e['LowAuto'] + 4*e['HighAuto'] + e['LowBallsTeleop'] + 2*e['HighBallsTeleop']
+    #dp['Sandstorm'] += e['Sandstorm']
+    #dp['HabClimb'] += e['HabClimb']
+    #dp['Hatches'] += e['H_Ship'] + e['H_R1'] + e['H_R2'] + e['H_R3']
+    #dp['Cargo'] += e['C_Ship'] + e['C_R1'] + e['C_R2'] + e['C_R3']
+    #dp['Cycles'] += e['H_Ship'] + e['H_R1'] + e['H_R2'] + e['H_R3'] + e['C_Ship'] + e['C_R1'] + e['C_R2'] + e['C_R3']
     
     return dp
     
@@ -152,13 +212,16 @@ def predictScore(datapath, teams, level='quals'):
         conn.row_factory = sql.Row
         cursor = conn.cursor()
         
-        rocketRP = 0
+        #rocketRP = 0
         climbRP = 0
+        energizedRP = 0
         climbTotal = 0
         rocketHatches = 0
         rocketCargo = 0
         
         pointsTotal = 0
+        ballsTotal = 0
+        hasManipulator = false
 
         for n in teams:
             average = cursor.execute('SELECT * FROM averages WHERE team=?', (n,)).fetchall()
@@ -168,26 +231,37 @@ def predictScore(datapath, teams, level='quals'):
             else:
               entry = dict(AVERAGE_FIELDS)
               entry.update(HIDDEN_AVERAGE_FIELDS)
+            pitEntry = dict(PIT_SCOUT_FIELDS)
             
-            pointsTotal += entry['Hatches']*2 + entry['Cargo']*3 + entry['Sandstorm'] + entry['HabClimb']
+            pointsTotal += 5*entry['AutoLine'] + entry['BallScore'] + 25*entry['Climb']
+            if(pitEntry['PanelManipulator'] == 1):
+              hasManipulator = true
+
+            
+            #pointsTotal += entry['Hatches']*2 + entry['Cargo']*3 + entry['Sandstorm'] + entry['HabClimb']
             rocketHatches += entry['HighHatches']
             rocketCargo += entry['HighCargo']
             
-            if(entry['HabClimb'] > 12):
-              climbRP = 1
-            else:
-              climbTotal += entry['HabClimb']
+            #if(entry['HabClimb'] > 12):
+            #  climbRP = 1
+            #else:
+            #  climbTotal += entry['HabClimb']
+            climbTotal += 25*entry['Climb']
               
-        if(rocketHatches > 3 and rocketCargo > 3):
-          rocketRP = 1
+        #if(rocketHatches > 3 and rocketCargo > 3):
+        #  rocketRP = 1
+
+        if(ballsTotal > 49 and hasManipulator == true):
+          energizedRP = 1
               
-        if (climbTotal > 15):
+        if(climbTotal > 65):
           climbRP = 1
               
         retVal = {'score': 0, 'RP1': 0, 'RP2': 0}
        
         retVal['score'] = pointsTotal
-        retVal['RP1'] = rocketRP
+        #retVal['RP1'] = rocketRP
+        retval['RP1'] = energizedRP
         retVal['RP2'] = climbRP
         
         return retVal
@@ -210,36 +284,57 @@ def calcTotals(entries):
         sums[key] = []
     #For each entry, add components to the running total if appropriate
     for i, e in enumerate(entries):
-        sums['Sandstorm'].append(e['Sandstorm'])
-        sums['HabClimb'].append(e['HabClimb'] + e['SupportClimb'])
-        sums['Cargo'].append(e['C_Ship'] + e['C_R1'] + e['C_R2'] + e['C_R3'])
-        sums['Hatches'].append(e['H_Ship'] + e['H_R1'] + e['H_R2'] + e['H_R3'])
-        sums['HighCargo'].append(e['C_R2'] + e['C_R3'])
-        sums['HighHatches'].append(e['H_R2'] + e['H_R3'])
-        sums['Cycles'].append(e['C_Ship'] + e['C_R1'] + e['C_R2'] + e['C_R3'] + e['H_Ship'] + e['H_R1'] + e['H_R2'] + e['H_R3'])
+        sums['Autoline'].append(e['Autoline'])
+        sums['Climb'].append(e['Climb'])
+        sums['LowAuto'].append(e['LowAuto'])
+        sums['HighAuto'].append(e['HighAuto'])
+        sums['LowBallsTeleop'].append(e['LowBallsTeleop'])
+        sums['HighBallsTeleop'].append(e['HighBallsTeleop'])
+        sums['TeleopBallScore'].append(e['LowBallsTeleop'] + 2*e['HighBallsTeleop'])
         sums['Defense'].append(e['Defense'])
-        sums['CycleScore'].append(0)
+        #sums['Sandstorm'].append(e['Sandstorm'])
+        #sums['HabClimb'].append(e['HabClimb'] + e['SupportClimb'])
+        #sums['Cargo'].append(e['C_Ship'] + e['C_R1'] + e['C_R2'] + e['C_R3'])
+        #sums['Hatches'].append(e['H_Ship'] + e['H_R1'] + e['H_R2'] + e['H_R3'])
+        #sums['HighCargo'].append(e['C_R2'] + e['C_R3'])
+        #sums['HighHatches'].append(e['H_R2'] + e['H_R3'])
+        #sums['Cycles'].append(e['C_Ship'] + e['C_R1'] + e['C_R2'] + e['C_R3'] + e['H_Ship'] + e['H_R1'] + e['H_R2'] + e['H_R3'])
+        #sums['CycleScore'].append(0)
         sums['FirstP'].append(0)
         sums['SecondP'].append(0)
         if not e['Defense']:
-          noDefense['Sandstorm']+=(e['Sandstorm'])
-          noDefense['HabClimb']+=(e['HabClimb'] + e['SupportClimb'])
-          noDefense['Cargo']+=(e['C_Ship'] + e['C_R1'] + e['C_R2'] + e['C_R3'])
-          noDefense['Hatches']+=(e['H_Ship'] + e['H_R1'] + e['H_R2'] + e['H_R3'])
-          noDefense['HighCargo']+=(e['C_R2'] + e['C_R3'])
-          noDefense['HighHatches']+=(e['H_R2'] + e['H_R3'])
-          noDefense['Cycles']+=(e['C_Ship'] + e['C_R1'] + e['C_R2'] + e['C_R3'] + e['H_Ship'] + e['H_R1'] + e['H_R2'] + e['H_R3'])
+          noDefense['Autoline']+=(e['Autoline'])
+          noDefense['Climb']+=(e['Climb'])
+          noDefense['LowAuto']+=(e['LowAuto'])
+          noDefense['HighAuto']+=(e['HighAuto'])
+          noDefense['LowBallsTeleop']+=(e['LowBallsTeleop'])
+          noDefense['HighBallsTeleop']+=(e['HighBallsTeleop'])
+          noDefense['TeleopBallScore']+=(e['LowBallsTeleop'] + 2*e['HighBallsTeleop'])
           noDefense['Defense']+=(e['Defense'])
+          #noDefense['Sandstorm']+=(e['Sandstorm'])
+          #noDefense['HabClimb']+=(e['HabClimb'] + e['SupportClimb'])
+          #noDefense['Cargo']+=(e['C_Ship'] + e['C_R1'] + e['C_R2'] + e['C_R3'])
+          #noDefense['Hatches']+=(e['H_Ship'] + e['H_R1'] + e['H_R2'] + e['H_R3'])
+          #noDefense['HighCargo']+=(e['C_R2'] + e['C_R3'])
+          #noDefense['HighHatches']+=(e['H_R2'] + e['H_R3'])
+          #noDefense['Cycles']+=(e['C_Ship'] + e['C_R1'] + e['C_R2'] + e['C_R3'] + e['H_Ship'] + e['H_R1'] + e['H_R2'] + e['H_R3'])
           noDCount += 1
         if i < 3:
-          lastThree['Sandstorm']+=(e['Sandstorm'])
-          lastThree['HabClimb']+=(e['HabClimb'] + e['SupportClimb'])
-          lastThree['Cargo']+=(e['C_Ship'] + e['C_R1'] + e['C_R2'] + e['C_R3'])
-          lastThree['Hatches']+=(e['H_Ship'] + e['H_R1'] + e['H_R2'] + e['H_R3'])
-          lastThree['HighCargo']+=(e['C_R2'] + e['C_R3'])
-          lastThree['HighHatches']+=(e['H_R2'] + e['H_R3'])
-          lastThree['Cycles']+=(e['C_Ship'] + e['C_R1'] + e['C_R2'] + e['C_R3'] + e['H_Ship'] + e['H_R1'] + e['H_R2'] + e['H_R3'])
+          lastThree['Autoline']+=(e['Autoline'])
+          lastThree['Climb']+=(e['Climb'])
+          lastThree['LowAuto']+=(e['LowAuto'])
+          lastThree['HighAuto']+=(e['HighAuto'])
+          lastThree['LowBallsTeleop']+=(e['LowBallsTeleop'])
+          lastThree['HighBallsTeleop']+=(e['HighBallsTeleop'])
+          lastThree['TeleopBallScore']+=(e['LowBallsTeleop'] + 2*e['HighBallsTeleop'])
           lastThree['Defense']+=(e['Defense'])
+          #lastThree['Sandstorm']+=(e['Sandstorm'])
+          #lastThree['HabClimb']+=(e['HabClimb'] + e['SupportClimb'])
+          #lastThree['Cargo']+=(e['C_Ship'] + e['C_R1'] + e['C_R2'] + e['C_R3'])
+          #lastThree['Hatches']+=(e['H_Ship'] + e['H_R1'] + e['H_R2'] + e['H_R3'])
+          #lastThree['HighCargo']+=(e['C_R2'] + e['C_R3'])
+          #lastThree['HighHatches']+=(e['H_R2'] + e['H_R3'])
+          #lastThree['Cycles']+=(e['C_Ship'] + e['C_R1'] + e['C_R2'] + e['C_R3'] + e['H_Ship'] + e['H_R1'] + e['H_R2'] + e['H_R3'])
           lastThreeCount += 1
     
     #If there is data, average out the last 3 or less matches
@@ -264,7 +359,7 @@ def calcTotals(entries):
     
     #Calculate Proprietary metrics.
     for key in retVal:
-        CycleScore = round((retVal[key]['Hatches']-retVal[key]['HighHatches'])*prop.LOW_HATCHES + retVal[key]['HighHatches']*prop.HIGH_HATCHES + (retVal[key]['Cargo']-retVal[key]['HighCargo'])*prop.LOW_CARGO + retVal[key]['HighCargo']*prop.HIGH_CARGO, 2)
+        #CycleScore = round((retVal[key]['Hatches']-retVal[key]['HighHatches'])*prop.LOW_HATCHES + retVal[key]['HighHatches']*prop.HIGH_HATCHES + (retVal[key]['Cargo']-retVal[key]['HighCargo'])*prop.LOW_CARGO + retVal[key]['HighCargo']*prop.HIGH_CARGO, 2)
         FirstPick = round((retVal[key]['Hatches']-retVal[key]['HighHatches'])*prop.FIRST_LOW_HATCHES + retVal[key]['HighHatches']*prop.FIRST_HIGH_HATCHES + (retVal[key]['Cargo']-retVal[key]['HighCargo'])*prop.FIRST_LOW_CARGO + retVal[key]['HighCargo']*prop.FIRST_HIGH_CARGO + retVal[key]['Sandstorm']*prop.FIRST_SANDSTORM + retVal[key]['HabClimb']*prop.FIRST_HAB_CLIMB, 2)
         SecondPick = round((retVal[key]['Hatches']-retVal[key]['HighHatches'])*prop.SECOND_LOW_HATCHES + retVal[key]['HighHatches']*prop.SECOND_HIGH_HATCHES + (retVal[key]['Cargo']-retVal[key]['HighCargo'])*prop.SECOND_LOW_CARGO + retVal[key]['HighCargo']*prop.SECOND_HIGH_CARGO + retVal[key]['Sandstorm']*prop.SECOND_SANDSTORM + retVal[key]['HabClimb']*prop.SECOND_HAB_CLIMB + retVal[key]['Defense']*prop.SECOND_DEFENSE, 2)
         
