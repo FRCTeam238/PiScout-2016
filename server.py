@@ -715,6 +715,7 @@ class ScoutServer(object):
                 raise cherrypy.HTTPError(400, "You fool! Enter six valid team numbers!")
             entries = cursor.execute('SELECT * FROM scout WHERE Team=? ORDER BY Match DESC', (n,)).fetchall()
             prevEvent = 0
+            lastEvent = 0
             if len(entries) < 3:
               globalconn = sql.connect('global.db')
               globalconn.row_factory = sql.Row

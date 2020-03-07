@@ -43,15 +43,15 @@ def processSheet(scout):
         scout.setType(type)
         if(type == SheetType.MATCH):
           #Match scouting sheet
-          num1 = scout.rangefield('J-5', 0, 9)
-          num2 = scout.rangefield('J-6', 0, 9)
-          num3 = scout.rangefield('J-7', 0, 9)
-          num4 = scout.rangefield('J-8', 0, 9)
+          num1 = scout.rangefield('AB-5', 0, 9)
+          num2 = scout.rangefield('AB-6', 0, 9)
+          num3 = scout.rangefield('AB-7', 0, 9)
+          num4 = scout.rangefield('AB-8', 0, 9)
           scout.setMatchData("Team", 1000*num1 + 100*num2 + 10*num3 + num4)
 
-          match1 = scout.rangefield('AB-5', 0, 1)
-          match2 = scout.rangefield('AB-6', 0, 9)
-          match3 = scout.rangefield('AB-7', 0, 9)
+          match1 = scout.rangefield('J-5', 0, 1)
+          match2 = scout.rangefield('J-6', 0, 9)
+          match3 = scout.rangefield('J-7', 0, 9)
           scout.setMatchData("Match", 100*match1 + 10*match2 + match3)
 
           AutoLine = scout.boolfield('G-11')
@@ -222,7 +222,8 @@ def predictScore(datapath, teams, level='quals'):
 
         pointsTotal = 0
         ballsTotal = 0
-        hasManipulator = false
+        ballScore = 0
+        hasManipulator = False
 
         for n in teams:
             average = cursor.execute('SELECT * FROM averages WHERE team=?', (n,)).fetchall()
@@ -240,15 +241,14 @@ def predictScore(datapath, teams, level='quals'):
             else:
               pitEntry = dict(PIT_SCOUT_FIELDS)
 
-            pointsTotal += 5*entry['AutoLine'] + entry['BallScore'] + entry['Climb']
+            ballScore = 2*entry['LowAuto'] + 4*entry['HighAuto'] + entry['LowBallsTeleop'] + 2*entry['HighBallsTeleop']
+            pointsTotal += 5*entry['AutoLine'] + ballScore + entry['Climb']
             if(pitEntry['PanelManipulator'] == 1):
-              hasManipulator = true
+              hasManipulator = True
 
             ballsTotal += entry['LowBallsTeleop'] + entry['HighBallsTeleop']
             #pointsTotal += entry['Hatches']*2 + entry['Cargo']*3 + entry['Sandstorm'] + entry['HabClimb']
-            rocketHatches += entry['HighHatches']
-            rocketCargo += entry['HighCargo']
-            
+           
             #if(entry['HabClimb'] > 12):
             #  climbRP = 1
             #else:
@@ -258,7 +258,7 @@ def predictScore(datapath, teams, level='quals'):
         #if(rocketHatches > 3 and rocketCargo > 3):
         #  rocketRP = 1
 
-        if(ballsTotal > 40 and hasManipulator == true):
+        if(ballsTotal > 40 and hasManipulator == True):
           energizedRP = 1
               
         if(climbTotal > 35):
@@ -269,7 +269,7 @@ def predictScore(datapath, teams, level='quals'):
        
         retVal['score'] = pointsTotal
         #retVal['RP1'] = rocketRP
-        retval['RP1'] = energizedRP
+        retVal['RP1'] = energizedRP
         retVal['RP2'] = climbRP
         
         return retVal
